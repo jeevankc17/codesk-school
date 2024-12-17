@@ -1,15 +1,15 @@
-"use server";
+'use server';
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath } from 'next/cache';
 import {
   ClassSchema,
   ExamSchema,
   StudentSchema,
   SubjectSchema,
   TeacherSchema,
-} from "./formValidationSchemas";
-import prisma from "./prisma";
-import { clerkClient } from "@clerk/nextjs/server";
+} from './formValidationSchemas';
+import prisma from './prisma';
+import { clerkClient } from '@clerk/nextjs/server';
 
 type CurrentState = { success: boolean; error: boolean };
 
@@ -64,7 +64,7 @@ export const deleteSubject = async (
   currentState: CurrentState,
   data: FormData
 ) => {
-  const id = data.get("id") as string;
+  const id = data.get('id') as string;
   try {
     await prisma.subject.delete({
       where: {
@@ -121,7 +121,7 @@ export const deleteClass = async (
   currentState: CurrentState,
   data: FormData
 ) => {
-  const id = data.get("id") as string;
+  const id = data.get('id') as string;
   try {
     await prisma.class.delete({
       where: {
@@ -147,7 +147,7 @@ export const createTeacher = async (
       password: data.password,
       firstName: data.name,
       lastName: data.surname,
-      publicMetadata:{role:"teacher"}
+      publicMetadata: { role: 'teacher' },
     });
 
     await prisma.teacher.create({
@@ -189,7 +189,7 @@ export const updateTeacher = async (
   try {
     const user = await clerkClient.users.updateUser(data.id, {
       username: data.username,
-      ...(data.password !== "" && { password: data.password }),
+      ...(data.password !== '' && { password: data.password }),
       firstName: data.name,
       lastName: data.surname,
     });
@@ -199,7 +199,7 @@ export const updateTeacher = async (
         id: data.id,
       },
       data: {
-        ...(data.password !== "" && { password: data.password }),
+        ...(data.password !== '' && { password: data.password }),
         username: data.username,
         name: data.name,
         surname: data.surname,
@@ -229,7 +229,7 @@ export const deleteTeacher = async (
   currentState: CurrentState,
   data: FormData
 ) => {
-  const id = data.get("id") as string;
+  const id = data.get('id') as string;
   try {
     await clerkClient.users.deleteUser(id);
 
@@ -267,7 +267,7 @@ export const createStudent = async (
       password: data.password,
       firstName: data.name,
       lastName: data.surname,
-      publicMetadata:{role:"student"}
+      publicMetadata: { role: 'student' },
     });
 
     await prisma.student.create({
@@ -307,7 +307,7 @@ export const updateStudent = async (
   try {
     const user = await clerkClient.users.updateUser(data.id, {
       username: data.username,
-      ...(data.password !== "" && { password: data.password }),
+      ...(data.password !== '' && { password: data.password }),
       firstName: data.name,
       lastName: data.surname,
     });
@@ -317,7 +317,7 @@ export const updateStudent = async (
         id: data.id,
       },
       data: {
-        ...(data.password !== "" && { password: data.password }),
+        ...(data.password !== '' && { password: data.password }),
         username: data.username,
         name: data.name,
         surname: data.surname,
@@ -345,7 +345,7 @@ export const deleteStudent = async (
   currentState: CurrentState,
   data: FormData
 ) => {
-  const id = data.get("id") as string;
+  const id = data.get('id') as string;
   try {
     await clerkClient.users.deleteUser(id);
 
@@ -446,7 +446,7 @@ export const deleteExam = async (
   currentState: CurrentState,
   data: FormData
 ) => {
-  const id = data.get("id") as string;
+  const id = data.get('id') as string;
 
   // const { userId, sessionClaims } = auth();
   // const role = (sessionClaims?.metadata as { role?: string })?.role;

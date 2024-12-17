@@ -3,14 +3,41 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model Admin {
   id       String @id
   username String @unique
+  schoolId String @unique
+  school   School @relation(fields: [schoolId], references: [id])
+}
+
+model School {
+  id            String         @id
+  name          String
+  address       String
+  phone         String
+  email         String         @unique
+  adminId       String         @unique
+  createdAt     DateTime       @default(now())
+  admin         Admin?
+  announcements Announcement[]
+  assignments   Assignment[]
+  attendances   Attendance[]
+  calendarYears CalendarYear[]
+  classes       Class[]
+  events        Event[]
+  exams         Exam[]
+  grades        Grade[]
+  lessons       Lesson[]
+  parents       Parent[]
+  results       Result[]
+  students      Student[]
+  subjects      Subject[]
+  teachers      Teacher[]
 }
 
 model Student {
@@ -26,32 +53,42 @@ model Student {
   sex         UserSex
   createdAt   DateTime     @default(now())
   parentId    String
-  parent      Parent       @relation(fields: [parentId], references: [id])
   classId     Int
-  class       Class        @relation(fields: [classId], references: [id])
   gradeId     Int
-  grade       Grade        @relation(fields: [gradeId], references: [id])
+  birthday    DateTime
+  schoolId    String
+  yearId      String
+  isActive    Boolean      @default(true)
   attendances Attendance[]
   results     Result[]
-  birthday    DateTime
+  class       Class        @relation(fields: [classId], references: [id])
+  grade       Grade        @relation(fields: [gradeId], references: [id])
+  parent      Parent       @relation(fields: [parentId], references: [id])
+  school      School       @relation(fields: [schoolId], references: [id])
+  year        CalendarYear @relation(fields: [yearId], references: [id])
 }
 
 model Teacher {
-  id        String    @id
-  username  String    @unique
+  id        String       @id
+  username  String       @unique
   name      String
   surname   String
-  email     String?   @unique
-  phone     String?   @unique
+  email     String?      @unique
+  phone     String?      @unique
   address   String
   img       String?
   bloodType String
   sex       UserSex
-  createdAt DateTime  @default(now())
-  subjects  Subject[]
-  lessons   Lesson[]
-  classes   Class[]
+  createdAt DateTime     @default(now())
   birthday  DateTime
+  schoolId  String
+  yearId    String
+  isActive  Boolean      @default(true)
+  classes   Class[]
+  lessons   Lesson[]
+  school    School       @relation(fields: [schoolId], references: [id])
+  year      CalendarYear @relation(fields: [yearId], references: [id])
+  subjects  Subject[]    @relation("SubjectToTeacher")
 }
 
 model Parent {
@@ -63,121 +100,180 @@ model Parent {
   phone     String    @unique
   address   String
   createdAt DateTime  @default(now())
+  schoolId  String
+  school    School    @relation(fields: [schoolId], references: [id])
   students  Student[]
 }
 
 model Grade {
-  id    Int @id @default(autoincrement())
-  level Int @unique
-
-  students Student[]
+  id       Int          @id @default(autoincrement())
+  level    Int          @unique
+  schoolId String
+  yearId   String
+  isActive Boolean      @default(true)
   classess Class[]
+  school   School       @relation(fields: [schoolId], references: [id])
+  year     CalendarYear @relation(fields: [yearId], references: [id])
+  students Student[]
 }
 
 model Class {
-  id       Int    @id @default(autoincrement())
-  name     String @unique
-  capacity Int
-
+  id            Int            @id @default(autoincrement())
+  name          String         @unique
+  capacity      Int
   supervisorId  String?
+  gradeId       Int
+  schoolId      String
+  yearId        String
+  isActive      Boolean        @default(true)
+  announcements Announcement[]
+  grade         Grade          @relation(fields: [gradeId], references: [id])
+  school        School         @relation(fields: [schoolId], references: [id])
   supervisor    Teacher?       @relation(fields: [supervisorId], references: [id])
+  year          CalendarYear   @relation(fields: [yearId], references: [id])
+  events        Event[]
   lessons       Lesson[]
   students      Student[]
-  gradeId       Int
-  grade         Grade          @relation(fields: [gradeId], references: [id])
-  events        Event[]
-  announcements Announcement[]
 }
 
 model Subject {
-  id       Int       @id @default(autoincrement())
-  name     String    @unique
-  teachers Teacher[]
+  id       Int          @id @default(autoincrement())
+  name     String       @unique
+  schoolId String
+  yearId   String
+  isActive Boolean      @default(true)
   lessons  Lesson[]
+  school   School       @relation(fields: [schoolId], references: [id])
+  year     CalendarYear @relation(fields: [yearId], references: [id])
+  teachers Teacher[]    @relation("SubjectToTeacher")
 }
 
 model Lesson {
-  id        Int      @id @default(autoincrement())
-  name      String
-  day       Day
-  startTime DateTime
-  endTime   DateTime
-
+  id          Int          @id @default(autoincrement())
+  name        String
+  day         Day
+  startTime   DateTime
+  endTime     DateTime
   subjectId   Int
-  subject     Subject      @relation(fields: [subjectId], references: [id])
   classId     Int
-  class       Class        @relation(fields: [classId], references: [id])
   teacherId   String
-  teacher     Teacher      @relation(fields: [teacherId], references: [id])
-  exams       Exam[]
+  schoolId    String
+  yearId      String
+  isActive    Boolean      @default(true)
   assignments Assignment[]
   attendances Attendance[]
+  exams       Exam[]
+  class       Class        @relation(fields: [classId], references: [id])
+  school      School       @relation(fields: [schoolId], references: [id])
+  subject     Subject      @relation(fields: [subjectId], references: [id])
+  teacher     Teacher      @relation(fields: [teacherId], references: [id])
+  year        CalendarYear @relation(fields: [yearId], references: [id])
 }
 
 model Exam {
-  id        Int      @id @default(autoincrement())
+  id        Int          @id @default(autoincrement())
   title     String
   startTime DateTime
   endTime   DateTime
-
-  lessonId Int
-  lesson   Lesson   @relation(fields: [lessonId], references: [id])
-  results  Result[]
+  lessonId  Int
+  schoolId  String
+  yearId    String
+  lesson    Lesson       @relation(fields: [lessonId], references: [id])
+  school    School       @relation(fields: [schoolId], references: [id])
+  year      CalendarYear @relation(fields: [yearId], references: [id])
+  results   Result[]
 }
 
 model Assignment {
-  id        Int      @id @default(autoincrement())
+  id        Int          @id @default(autoincrement())
   title     String
   startDate DateTime
   dueDate   DateTime
-
-  lessonId Int
-  lesson   Lesson   @relation(fields: [lessonId], references: [id])
-  results  Result[]
+  lessonId  Int
+  schoolId  String
+  yearId    String
+  lesson    Lesson       @relation(fields: [lessonId], references: [id])
+  school    School       @relation(fields: [schoolId], references: [id])
+  year      CalendarYear @relation(fields: [yearId], references: [id])
+  results   Result[]
 }
 
 model Result {
-  id    Int @id @default(autoincrement())
-  score Int
-
+  id           Int          @id @default(autoincrement())
+  score        Int
   examId       Int?
-  exam         Exam?       @relation(fields: [examId], references: [id])
   assignmentId Int?
-  assignment   Assignment? @relation(fields: [assignmentId], references: [id])
   studentId    String
-  student      Student     @relation(fields: [studentId], references: [id])
+  schoolId     String
+  yearId       String
+  assignment   Assignment?  @relation(fields: [assignmentId], references: [id])
+  exam         Exam?        @relation(fields: [examId], references: [id])
+  school       School       @relation(fields: [schoolId], references: [id])
+  student      Student      @relation(fields: [studentId], references: [id])
+  year         CalendarYear @relation(fields: [yearId], references: [id])
 }
 
 model Attendance {
-  id      Int      @id @default(autoincrement())
-  date    DateTime
-  present Boolean
-
+  id        Int          @id @default(autoincrement())
+  date      DateTime
+  present   Boolean
   studentId String
-  student   Student @relation(fields: [studentId], references: [id])
   lessonId  Int
-  lesson    Lesson  @relation(fields: [lessonId], references: [id])
+  schoolId  String
+  yearId    String
+  lesson    Lesson       @relation(fields: [lessonId], references: [id])
+  school    School       @relation(fields: [schoolId], references: [id])
+  student   Student      @relation(fields: [studentId], references: [id])
+  year      CalendarYear @relation(fields: [yearId], references: [id])
 }
 
 model Event {
-  id          Int      @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   title       String
   description String
   startTime   DateTime
   endTime     DateTime
-
-  classId Int?
-  class   Class? @relation(fields: [classId], references: [id])
+  classId     Int?
+  schoolId    String
+  yearId      String
+  class       Class?       @relation(fields: [classId], references: [id])
+  school      School       @relation(fields: [schoolId], references: [id])
+  year        CalendarYear @relation(fields: [yearId], references: [id])
 }
 
 model Announcement {
-  id          Int      @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   title       String
   description String
   date        DateTime
+  classId     Int?
+  schoolId    String
+  yearId      String
+  class       Class?       @relation(fields: [classId], references: [id])
+  school      School       @relation(fields: [schoolId], references: [id])
+  year        CalendarYear @relation(fields: [yearId], references: [id])
+}
 
-  classId Int?
-  class   Class? @relation(fields: [classId], references: [id])
+model CalendarYear {
+  id            String         @id
+  name          String
+  startDate     DateTime
+  endDate       DateTime
+  schoolId      String
+  createdAt     DateTime       @default(now())
+  announcements Announcement[]
+  assignments   Assignment[]
+  attendances   Attendance[]
+  school        School         @relation(fields: [schoolId], references: [id])
+  classes       Class[]
+  events        Event[]
+  exams         Exam[]
+  grades        Grade[]
+  lessons       Lesson[]
+  results       Result[]
+  students      Student[]
+  subjects      Subject[]
+  teachers      Teacher[]
 }
 
 enum UserSex {
